@@ -48,6 +48,11 @@ async fn new_game(req: HttpRequest, data: web::Data<AppState>) -> impl Responder
     HttpResponse::Ok().body(format!("{:?}", games))
 }
 
+async fn not_found(req: HttpRequest) -> impl Responder {
+    let path = req.uri();
+    HttpResponse::NotFound().body(format!("Didn't find page {path}"))
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     println!("starting HTTP server at http://localhost:8080");
@@ -59,6 +64,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(state.clone())
             .route("/new_game", web::get().to(new_game))
             .service(Files::new("/", "./ui/dist/").index_file("index.html")) // Static files are served _last_
+            .default_service(web::to(not_found))
     })
     .bind(("127.0.0.1", 8080))?
     .run()
