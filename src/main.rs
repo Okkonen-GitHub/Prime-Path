@@ -58,7 +58,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(state.clone())
             .route("/new_game", web::get().to(new_game))
-            .service(Files::new("/", "./ui/build/").index_file("index.html")) // Static files are served _last_
+            .service(Files::new("/", "./ui/dist/").index_file("index.html")) // Static files are served _last_
     })
     .bind(("127.0.0.1", 8080))?
     .run()
