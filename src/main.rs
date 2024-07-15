@@ -10,7 +10,7 @@ const GAME_ID_LEN: usize = 6;
 
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 
-type RoomPath = String;
+type GameId = String;
 
 #[derive(Default, Debug)]
 struct Game {
@@ -20,7 +20,7 @@ struct Game {
 
 #[derive(Default)]
 struct AppState {
-    games: Mutex<HashMap<RoomPath, Game>>,
+    games: Mutex<HashMap<GameId, Game>>,
 }
 
 fn gen_link() -> String {
