@@ -6,12 +6,5 @@
 </script>
 
 <main>
-    <h1>Prime Path</h1>
     <Router {routes} />
 </main>
-
-<style>
-    h1 {
-        color: #77996e;
-    }
-</style>

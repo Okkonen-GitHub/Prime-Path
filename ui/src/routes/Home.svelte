@@ -6,6 +6,7 @@
 </script>
 
 <main>
+    <h1>Prime Path</h1>
     <div class="card">
         <NewGame />
         <JoinGame />
@@ -19,3 +20,10 @@
         >.
     </p>
 </main>
+
+<style>
+    h1 {
+        color: #77996e;
+        text-align: center;
+    }
+</style>
