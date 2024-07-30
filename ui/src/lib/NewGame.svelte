@@ -1,6 +1,7 @@
 <script lang="ts">
     import { push } from "svelte-spa-router";
     import { name } from "./store";
+    import NameInput from "./NameInput.svelte";
 
     let resp: string;
     let ns: string;
@@ -14,21 +15,9 @@
 
         response.text().then((t) => (resp = t));
     }
-    function update_name() {
-        name.update((old) => (old = ns));
-    }
 </script>
 
-<p>Enter name</p>
-<input
-    bind:value={ns}
-    on:keyup={update_name}
-    type="text"
-    minlength="1"
-    maxlength="30"
-    spellcheck="false"
-    placeholder="Player1"
-/>
+<NameInput />
 <button on:click={new_game}> New Game </button>
 
 {#if resp !== undefined}

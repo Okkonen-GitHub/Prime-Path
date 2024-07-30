@@ -1,10 +1,17 @@
 use std::{collections::HashMap, sync::Mutex};
 
+use std::time::Instant;
+
+use actix::prelude::*;
 use actix_files::Files;
 use actix_web::{
     web::{self, Data},
-    App, HttpRequest, HttpResponse, HttpServer, Responder,
+    App, Error, HttpRequest, HttpResponse, HttpServer, Responder,
 };
+use actix_web_actors::ws;
+
+mod game_server;
+mod game_session;
 
 const GAME_ID_LEN: usize = 6;
 
@@ -63,6 +70,25 @@ async fn join_game(req: HttpRequest) -> impl Responder {
     }
 }
 
+/// Entry point for our websocket route
+async fn game_ws(
+    req: HttpRequest,
+    stream: web::Payload,
+    srv: web::Data<Addr<game_server::GameServer>>,
+) -> Result<HttpResponse, Error> {
+    ws::start(
+        game_session::WsGameSession {
+            id: 0,
+            hb: Instant::now(),
+            game_id: "rnnnndm".to_owned(),
+            name: None,
+            addr: srv.get_ref().clone(),
+        },
+        &req,
+        stream,
+    )
+}
+
 // Returns a new game link 2 players can join to (first player should automatically get redirected)
 // Adds the game room to some store
 // Establishes some shared secret with player1?
@@ -74,7 +100,7 @@ async fn new_game(req: HttpRequest, data: web::Data<AppState>) -> impl Responder
         // to avoid duplicates
         new_game_link = gen_link()
     }
-    let name = req.query_string();
+    let name = req.query_string().get(5..).unwrap_or("Player1");
     games.insert(
         new_game_link.clone(),
         Game {
@@ -97,14 +123,19 @@ async fn main() -> std::io::Result<()> {
 
     let state = web::Data::new(AppState::default());
 
+    let server = game_server::GameServer::new().start();
+
     HttpServer::new(move || {
         App::new()
             .app_data(state.clone())
+            .app_data(web::Data::new(server.clone()))
             .route("/new_game", web::get().to(new_game))
             .route("/join_game", web::post().to(join_game))
+            .route("/ws", web::get().to(game_ws))
             .service(Files::new("/", "./ui/dist/").index_file("index.html")) // Static files are served _last_
             .default_service(web::to(not_found))
     })
+    // .workers(2)
     .bind(("127.0.0.1", 8080))?
     .run()
     .await

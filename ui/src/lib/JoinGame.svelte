@@ -1,13 +1,16 @@
 <script lang="ts">
     import { link, push } from "svelte-spa-router";
     import { name } from "./store";
-    let game_code: string = "";
+    export let game_code: string = "";
     let ns: string;
     name.subscribe((n: string) => (ns = n));
 
-    async function join_game() {
-        if (game_code === undefined || game_code === "") {
+    export async function join_game(code: string) {
+        if (code === undefined || code === "") {
             return;
+        }
+        if (ns === "") {
+            return alert("Name missing");
         }
         const response = await fetch(`/join_game?id=${game_code}&name=${ns}`, {
             method: "post",
@@ -30,7 +33,7 @@
     spellcheck="false"
     placeholder="pj65mr"
 />
-<button on:click={join_game}> Join Game </button>
+<button on:click={(t) => join_game(game_code)}> Join Game </button>
 
 <style>
     button {
