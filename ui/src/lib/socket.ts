@@ -1,7 +1,7 @@
 
 
 const socket = new WebSocket("ws://localhost:8080/ws");
-export function test() {
+export function init_ws() {
   
   socket.onopen = function(e) {
     console.log("[open] Connection established");

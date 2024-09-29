@@ -183,5 +183,9 @@ impl Handler<Join> for GameServer {
         self.games.entry(game_id.clone()).or_default().insert(id);
 
         self.send_message(Some(&game_id), "Someone connected", id);
+        self.sessions
+            .get(&id)
+            .expect("Just joined, must exist?")
+            .do_send(Message("Hello from here".to_owned()));
     }
 }
