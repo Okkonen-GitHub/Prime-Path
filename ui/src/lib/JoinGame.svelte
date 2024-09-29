@@ -4,22 +4,23 @@
     export let game_code: string = "";
 
     export async function join_game(code: string) {
-        if (code === undefined || code === "") {
-            return;
-        }
-        let name = get_name();
-        if (name === undefined || name === "") {
-            return alert("Name missing");
-        }
-        const response = await fetch(`/join_game?id=${game_code}&name=${name}`, {
-            method: "post",
-        });
-        if (response.ok) {
-            push(`#/${game_code}`);
-        } else {
-            let code = response.status;
-            response.text().then((t) => alert(`${code}: ${t}`));
-        }
+      if (code === undefined || code === "") {
+        return;
+      }
+      let name = get_name();
+      if (name === undefined || name === "") {
+        return alert("Name missing");
+      }
+      const response = await fetch(`/join_game?id=${game_code}&name=${name}`, {
+        method: "post",
+      });
+      if (response.ok) {
+        push(`#/${game_code}`);
+      } else {
+        let code = response.status;
+        response.text().then((t) => alert(`${code}: ${t}`));
+      }
+
     }
 </script>
 

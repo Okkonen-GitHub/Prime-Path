@@ -22,7 +22,7 @@ pub struct WsGameSession {
     pub hb: Instant,
 
     /// joined room
-    pub game_id: String,
+    pub game_id: Option<String>,
 
     /// peer name
     pub name: Option<String>,
@@ -132,10 +132,14 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsGameSession {
                     match v[0] {
                         "/join" => {
                             if v.len() == 2 {
-                                v[1].clone_into(&mut self.game_id);
+                                // v[1].clone_into(&mut self.game_id);
+                                self.game_id = Some(v[1].to_owned());
                                 self.addr.do_send(game_server::Join {
                                     id: self.id,
-                                    game_id: self.game_id.clone(),
+                                    game_id: self
+                                        .game_id
+                                        .clone()
+                                        .expect("We just set it 2 lines above?"),
                                 });
 
                                 ctx.text("joined");
@@ -149,6 +153,9 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsGameSession {
                             } else {
                                 ctx.text("!!! name is required");
                             }
+                        }
+                        "/create" => {
+                            ctx.text("Randomyeah");
                         }
                         _ => ctx.text(format!("!!! unknown command: {m:?}")),
                     }

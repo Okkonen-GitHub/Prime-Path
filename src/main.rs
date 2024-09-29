@@ -80,7 +80,7 @@ async fn game_ws(
         game_session::WsGameSession {
             id: 0,
             hb: Instant::now(),
-            game_id: "NONE".to_owned(),
+            game_id: None,
             name: None,
             addr: srv.get_ref().clone(),
         },

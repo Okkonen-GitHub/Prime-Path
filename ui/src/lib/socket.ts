@@ -1,18 +1,8 @@
 
 
+const socket = new WebSocket("ws://localhost:8080/ws");
 export function test() {
   
-  const socket = new WebSocket("ws://localhost:8080/ws");
-  console.log(socket);
-  // Connection opened
-  // socket.addEventListener("open", (event) => {
-  //   socket.send("Hello Server!");
-  // });
-  //
-  // // Listen for messages
-  // socket.addEventListener("message", (event) => {
-  //   console.log("Message from server ", event.data);
-  // });
   socket.onopen = function(e) {
     console.log("[open] Connection established");
     console.log("Sending to server");
@@ -34,7 +24,7 @@ export function test() {
   };
 
   socket.onerror = function(error) {
-    console.log(`[error]`);
+    console.log(`[error: ${error}]`);
   };
 
 }
@@ -42,6 +32,6 @@ export function test() {
 
 
 export function create_game(name: string) {
-  
+  socket.send("/create");
   
 }

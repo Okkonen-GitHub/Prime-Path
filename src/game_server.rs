@@ -39,7 +39,7 @@ pub struct ClientMessage {
     /// Peer message
     pub msg: String,
     /// Room name
-    pub game_id: String,
+    pub game_id: Option<String>,
 }
 
 /// Join room, if room does not exists create new one.
@@ -76,12 +76,14 @@ impl GameServer {
 
 impl GameServer {
     /// Send message to all users in the room
-    fn send_message(&self, room: &str, message: &str, skip_id: usize) {
-        if let Some(sessions) = self.games.get(room) {
-            for id in sessions {
-                if *id != skip_id {
-                    if let Some(addr) = self.sessions.get(id) {
-                        addr.do_send(Message(message.to_owned()));
+    fn send_message(&self, room: Option<&str>, message: &str, skip_id: usize) {
+        if let Some(room) = room {
+            if let Some(sessions) = self.games.get(room) {
+                for id in sessions {
+                    if *id != skip_id {
+                        if let Some(addr) = self.sessions.get(id) {
+                            addr.do_send(Message(message.to_owned()));
+                        }
                     }
                 }
             }
@@ -143,7 +145,7 @@ impl Handler<Disconnect> for GameServer {
         }
         // send message to other users
         for room in rooms {
-            self.send_message(&room, "Someone disconnected", 0);
+            self.send_message(Some(&room), "Someone disconnected", 0);
         }
     }
 }
@@ -153,7 +155,7 @@ impl Handler<ClientMessage> for GameServer {
     type Result = ();
 
     fn handle(&mut self, msg: ClientMessage, _: &mut Context<Self>) {
-        self.send_message(&msg.game_id, msg.msg.as_str(), msg.id);
+        self.send_message(msg.game_id.as_deref(), msg.msg.as_str(), msg.id);
     }
 }
 
@@ -162,8 +164,9 @@ impl Handler<ClientMessage> for GameServer {
 impl Handler<Join> for GameServer {
     type Result = ();
 
-    fn handle(&mut self, msg: Join, _: &mut Context<Self>) {
+    fn handle(&mut self, msg: Join, _ctx: &mut Context<Self>) {
         let Join { id, game_id } = msg;
+        dbg!("joined room", &game_id);
         let mut rooms = Vec::new();
 
         // remove session from all rooms
@@ -174,11 +177,11 @@ impl Handler<Join> for GameServer {
         }
         // send message to other users
         for room in rooms {
-            self.send_message(&room, "Someone disconnected", 0);
+            self.send_message(Some(&room), "Someone disconnected", 0);
         }
 
         self.games.entry(game_id.clone()).or_default().insert(id);
 
-        self.send_message(&game_id, "Someone connected", id);
+        self.send_message(Some(&game_id), "Someone connected", id);
     }
 }
