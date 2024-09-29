@@ -1,19 +1,18 @@
 <script lang="ts">
     import { push } from "svelte-spa-router";
-    import { name } from "./store";
+    import { get_name, set_name } from "./store";
     import NameInput from "./NameInput.svelte";
-
-    let resp: string;
-    let ns: string;
-    name.subscribe((n) => (ns = n));
+    
+    let resp;
     async function new_game() {
-        if (ns === undefined || ns === "") {
-            alert("You need to enter a name");
-            return;
-        }
-        const response = await fetch(`/new_game?name=${ns}`);
+      let name = get_name();
+      if (name === undefined || name === "") {
+        alert("You need to enter a name");
+        return;
+      }
+      const response = await fetch(`/new_game?name=${name}`);
 
-        response.text().then((t) => (resp = t));
+      response.text().then((t) => (resp = t));
     }
 </script>
 

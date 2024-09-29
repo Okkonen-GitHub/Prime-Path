@@ -1,16 +1,12 @@
 <script lang="ts">
-    import { name } from "./store";
-
-    let ns: string;
-    function update_name() {
-        name.update((old) => (old = ns));
-    }
+    import { set_name, get_name} from "./store";
+    let name = get_name();
 </script>
 
 <p>Enter name</p>
 <input
-    bind:value={ns}
-    on:keyup={update_name}
+    bind:value={name}
+    on:keyup={() => set_name(name)}
     type="text"
     minlength="1"
     maxlength="30"

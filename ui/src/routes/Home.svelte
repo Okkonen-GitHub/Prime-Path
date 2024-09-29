@@ -3,6 +3,8 @@
     import JoinGame from "../lib/JoinGame.svelte";
 
     // Import the list of routes
+    import { test } from "../lib/socket";
+    test()
 </script>
 
 <main>
