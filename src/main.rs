@@ -30,7 +30,7 @@ struct AppState {
     games: Mutex<HashMap<GameId, Game>>,
 }
 
-fn gen_link() -> String {
+fn gen_game_id() -> String {
     thread_rng()
         .sample_iter(Alphanumeric)
         .take(GAME_ID_LEN)
@@ -94,11 +94,11 @@ async fn game_ws(
 // Establishes some shared secret with player1?
 async fn new_game(req: HttpRequest, data: web::Data<AppState>) -> impl Responder {
     let mut games = data.games.lock().unwrap();
-    let mut new_game_link = gen_link();
+    let mut new_game_link = gen_game_id();
 
     while games.contains_key(&new_game_link) {
         // to avoid duplicates
-        new_game_link = gen_link()
+        new_game_link = gen_game_id()
     }
     let name = req.query_string().get(5..).unwrap_or("Player1");
     games.insert(

@@ -12,9 +12,9 @@
         alert("You need to enter a name");
         return;
       }
-      const response = await fetch(`/new_game?name=${name}`);
-
-      response.text().then((t) => (resp = t));
+      // const response = await fetch(`/new_game?name=${name}`);
+      //
+      // response.text().then((t) => (resp = t));
       create_game(name);
     }
 </script>

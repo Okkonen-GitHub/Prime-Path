@@ -4,7 +4,7 @@ use actix::prelude::*;
 use actix_web_actors::ws;
 use std::time::{Duration, Instant};
 
-use crate::game_server;
+use crate::{game_server, gen_game_id};
 
 // How often heartbeat pings are sent
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
@@ -155,7 +155,14 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsGameSession {
                             }
                         }
                         "/create" => {
-                            ctx.text("Randomyeah");
+                            let game_id = gen_game_id(); // TODO ask gameserver if this is a
+                                                         // duplicate
+                            ctx.text(format!("/redirect{}", &game_id));
+                            self.game_id = Some(game_id.to_owned());
+                            self.addr.do_send(game_server::Join {
+                                id: self.id,
+                                game_id: self.game_id.clone().expect("just added it"),
+                            })
                         }
                         _ => ctx.text(format!("!!! unknown command: {m:?}")),
                     }
