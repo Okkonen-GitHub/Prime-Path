@@ -53,6 +53,12 @@ pub struct Join {
     pub game_id: String,
 }
 
+#[derive(Message)]
+#[rtype(result(bool))]
+pub struct CheckGameExists {
+    pub game_id: GameId,
+}
+
 /// `GameServer` manages chat rooms and responsible for coordinating chat session.
 ///
 /// Implementation is very naïve.
@@ -187,5 +193,14 @@ impl Handler<Join> for GameServer {
             .get(&id)
             .expect("Just joined, must exist?")
             .do_send(Message("Hello from here".to_owned()));
+    }
+}
+
+impl Handler<CheckGameExists> for GameServer {
+    type Result = bool;
+
+    fn handle(&mut self, msg: CheckGameExists, _: &mut Context<Self>) -> Self::Result {
+        let CheckGameExists { game_id } = msg;
+        self.games.contains_key(&game_id)
     }
 }

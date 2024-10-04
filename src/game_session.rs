@@ -133,14 +133,51 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsGameSession {
                         "/join" => {
                             if v.len() == 2 {
                                 // v[1].clone_into(&mut self.game_id);
-                                self.game_id = Some(v[1].to_owned());
-                                self.addr.do_send(game_server::Join {
-                                    id: self.id,
-                                    game_id: self
-                                        .game_id
-                                        .clone()
-                                        .expect("We just set it 2 lines above?"),
-                                });
+
+                                // check if there is a game with this code
+                                // if yes, send Join to gameserver
+                                // if not send client "Not found"
+                                let game_id = v[1].to_owned();
+                                self.addr
+                                    .send(game_server::CheckGameExists {
+                                        game_id: game_id.clone(),
+                                    })
+                                    .into_actor(self)
+                                    .then(move |res, act, ctx| {
+                                        match res {
+                                            Ok(res) => {
+                                                if res {
+                                                    act.game_id = Some(game_id.clone());
+                                                } else {
+                                                    act.game_id = None;
+                                                    return fut::err("No such room");
+                                                }
+                                            }
+                                            Err(why) => {
+                                                eprintln!(
+                                                "Something is wrong with the game server: {why}"
+                                            );
+                                                ctx.stop();
+                                            }
+                                        }
+                                        fut::ok(())
+                                    })
+                                    .map(|val, _act, ctx| match val {
+                                        Ok(_) => (),
+                                        Err(why) => {
+                                            ctx.text(why);
+                                            return;
+                                        }
+                                    })
+                                    .wait(ctx);
+                                // self.game_id = Some(v[1].to_owned());
+                                // self.addr.do_send(game_server::Join {
+                                //     id: self.id,
+                                //     game_id: self
+                                //         .game_id
+                                //         .clone()
+                                //         .expect("We just set it 2 lines above?"),
+                                // });
 
                                 ctx.text("joined");
                             } else {

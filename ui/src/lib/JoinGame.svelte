@@ -1,9 +1,10 @@
 <script lang="ts">
     import { link, push } from "svelte-spa-router";
     import { set_name, get_name } from "./store";
+    import { send_name, join_game } from "./socket";
     export let game_code: string = "";
 
-    export async function join_game(code: string) {
+    export async function enter_game_code(code: string) {
       if (code === undefined || code === "") {
         return;
       }
@@ -11,15 +12,18 @@
       if (name === undefined || name === "") {
         return alert("Name missing");
       }
-      const response = await fetch(`/join_game?id=${game_code}&name=${name}`, {
-        method: "post",
-      });
-      if (response.ok) {
-        push(`#/${game_code}`);
-      } else {
-        let code = response.status;
-        response.text().then((t) => alert(`${code}: ${t}`));
-      }
+
+      // const response = await fetch(`/join_game?id=${game_code}&name=${name}`, {
+      //   method: "post",
+      // });
+      // if (response.ok) {
+      //   push(`#/${game_code}`);
+      // } else {
+      //   let code = response.status;
+      //   response.text().then((t) => alert(`${code}: ${t}`));
+      // }
+      send_name(name);
+      join_game(code);
 
     }
 </script>
@@ -33,7 +37,7 @@
     spellcheck="false"
     placeholder="pj65mr"
 />
-<button on:click={(t) => join_game(game_code)}> Join Game </button>
+<button on:click={(t) => enter_game_code(game_code)}> Join Game </button>
 
 <style>
     button {
