@@ -148,9 +148,15 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsGameSession {
                                             Ok(res) => {
                                                 if res {
                                                     act.game_id = Some(game_id.clone());
+
+                                                    act.addr.do_send(game_server::Join {
+                                                        id: act.id,
+                                                        game_id,
+                                                    });
+                                                    ctx.text("Joined");
                                                 } else {
                                                     act.game_id = None;
-                                                    return fut::err("No such room");
+                                                    ctx.text("No such room");
                                                 }
                                             }
                                             Err(why) => {
@@ -160,26 +166,9 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsGameSession {
                                                 ctx.stop();
                                             }
                                         }
-                                        fut::ok(())
-                                    })
-                                    .map(|val, _act, ctx| match val {
-                                        Ok(_) => (),
-                                        Err(why) => {
-                                            ctx.text(why);
-                                            return;
-                                        }
+                                        fut::ready(())
                                     })
                                     .wait(ctx);
-                                // self.game_id = Some(v[1].to_owned());
-                                // self.addr.do_send(game_server::Join {
-                                //     id: self.id,
-                                //     game_id: self
-                                //         .game_id
-                                //         .clone()
-                                //         .expect("We just set it 2 lines above?"),
-                                // });
-
-                                ctx.text("joined");
                             } else {
                                 ctx.text("!!! room name is required");
                             }
