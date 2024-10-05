@@ -181,14 +181,33 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsGameSession {
                             }
                         }
                         "/create" => {
-                            let game_id = gen_game_id(); // TODO ask gameserver if this is a
-                                                         // duplicate
-                            ctx.text(format!("/redirect{}", &game_id));
-                            self.game_id = Some(game_id.to_owned());
-                            self.addr.do_send(game_server::Join {
-                                id: self.id,
-                                game_id: self.game_id.clone().expect("just added it"),
-                            })
+                            let game_id = gen_game_id();
+
+                            self.game_id = Some(game_id.clone());
+                            self.addr
+                                .send(game_server::ListGames {})
+                                .into_actor(self)
+                                .then(move |res, act, ctx| {
+                                    match res {
+                                        Ok(game_ids) => {
+                                            let mut next_game_id = game_id.clone();
+                                            while game_ids.contains(&next_game_id) {
+                                                // generate new ids until a non duplicate is found
+                                                next_game_id = gen_game_id();
+                                            }
+                                            act.game_id = Some(game_id.clone());
+                                            act.addr.do_send(game_server::Join {
+                                                id: act.id,
+                                                game_id: game_id.clone(),
+                                            });
+                                            ctx.text(format!("/redirect{}", &game_id));
+                                        }
+                                        Err(_why) => ctx.stop(), // Something is wrong with the
+                                                                 // gameserver, stop
+                                    }
+                                    fut::ready(())
+                                })
+                                .wait(ctx);
                         }
                         _ => ctx.text(format!("!!! unknown command: {m:?}")),
                     }

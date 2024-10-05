@@ -58,6 +58,9 @@ pub struct Join {
 pub struct CheckGameExists {
     pub game_id: GameId,
 }
+#[derive(Message)]
+#[rtype(result = "Vec<GameId>")]
+pub struct ListGames {}
 
 /// `GameServer` manages chat rooms and responsible for coordinating chat session.
 ///
@@ -202,5 +205,12 @@ impl Handler<CheckGameExists> for GameServer {
     fn handle(&mut self, msg: CheckGameExists, _: &mut Context<Self>) -> Self::Result {
         let CheckGameExists { game_id } = msg;
         self.games.contains_key(&game_id)
+    }
+}
+impl Handler<ListGames> for GameServer {
+    type Result = Vec<GameId>;
+
+    fn handle(&mut self, _msg: ListGames, _: &mut Context<Self>) -> Self::Result {
+        Vec::from_iter(self.games.keys().map(ToOwned::to_owned))
     }
 }
