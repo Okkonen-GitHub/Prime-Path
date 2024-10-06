@@ -1,6 +1,6 @@
 <script lang="ts">
     import { push } from "svelte-spa-router";
-    import { get_name, set_name } from "./store";
+    import { get_name, set_name, enter_game } from "./store";
     import { create_game } from "./socket"
 
     import NameInput from "./NameInput.svelte";
@@ -16,6 +16,7 @@
       //
       // response.text().then((t) => (resp = t));
       create_game(name);
+      enter_game();
     }
 </script>
 

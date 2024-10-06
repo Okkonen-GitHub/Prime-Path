@@ -1,8 +1,8 @@
 <script lang="ts">
     import { link, push } from "svelte-spa-router";
-    import { set_name, get_name } from "./store";
+    import { set_name, get_name,  } from "./store";
     import { send_name, join_game } from "./socket";
-    export let game_code: string = "";
+    let game_code: string = "";
 
     export async function enter_game_code(code: string) {
       if (code === undefined || code === "") {

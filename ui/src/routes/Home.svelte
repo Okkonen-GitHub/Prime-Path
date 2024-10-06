@@ -15,11 +15,13 @@
     </div>
 
     <p>
-        Check out the source code at <a
+        Check out the source code at
+          <a
             href="https://github.com/okkonen-github/prime-path"
             target="_blank"
-            rel="noreferrer">Github</a
-        >.
+            rel="noreferrer">
+            Github
+          </a>.
     </p>
 </main>
 

@@ -1,11 +1,16 @@
 import { push } from "svelte-spa-router";
+import { writable } from "svelte/store";
 
-const socket = new WebSocket("ws://localhost:8080/ws");
+let socket = new WebSocket("ws://localhost:8080/ws");
+export let connected = writable(false);
+
+
 export function init_ws() {
   
   socket.onopen = function(e) {
     console.log("[open] Connection established");
     console.log(socket);
+    connected.set(true);
   };
 
   socket.onmessage = onmsg;
@@ -18,6 +23,7 @@ export function init_ws() {
       // event.code is usually 1006 in this case
       console.log('[close] Connection died');
     }
+    connected.set(false);
   };
 
   socket.onerror = function(error) {
