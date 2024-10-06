@@ -14,3 +14,6 @@ export function enter_game() {
 export function is_in_game() {
   return localStorage.getItem("is_in_game");
 }
+export function set_game_left() {
+  localStorage.setItem("is_in_game", false);
+}

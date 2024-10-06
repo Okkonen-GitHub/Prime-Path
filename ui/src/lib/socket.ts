@@ -1,5 +1,6 @@
 import { push } from "svelte-spa-router";
 import { writable } from "svelte/store";
+import { set_game_left } from "./store";
 
 let socket = new WebSocket("ws://localhost:8080/ws");
 export let connected = writable(false);
@@ -24,6 +25,7 @@ export function init_ws() {
       console.log('[close] Connection died');
     }
     connected.set(false);
+    set_game_left();
   };
 
   socket.onerror = function(error) {
