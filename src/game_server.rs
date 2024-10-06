@@ -2,12 +2,12 @@
 //! It also manages game rooms. Peers send messages to other peers in same
 //! room through `GameServer`.
 
+use actix::prelude::*;
+use core::num::NonZeroU128;
+use rand::{rngs::ThreadRng, Rng};
 use std::collections::{HashMap, HashSet};
 
-use actix::prelude::*;
-use rand::{rngs::ThreadRng, Rng};
-
-use crate::{Game, GameId};
+use crate::GameId;
 
 /// Game server sends this messages to session
 #[derive(Message)]
@@ -50,7 +50,7 @@ pub struct Join {
     pub id: usize,
 
     /// Game id (or name, later on?)
-    pub game_id: String,
+    pub game_id: GameId,
 }
 
 #[derive(Message)]
@@ -62,13 +62,43 @@ pub struct CheckGameExists {
 #[rtype(result = "Vec<GameId>")]
 pub struct ListGames {}
 
+#[derive(Message)]
+#[rtype(result = "Vec<GameId>")]
+pub struct Ready {}
+
+#[derive(Debug, Default)]
+pub enum GameStatus {
+    #[default]
+    Waiting,
+    Starting,
+    InProcess {
+        current_number: NonZeroU128,
+    },
+}
+
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct Player {
+    pub name: String, // controlled by /name
+}
+
+#[derive(Default, Debug)]
+pub struct Game {
+    /// at first limited to 2, but adding multiperson games and spectators
+    /// later is supported
+    pub players: HashMap<usize, Player>,
+    /// the id of the player whose turn it is
+    pub turn_id: usize,
+    /// for checking if certain game actions is valid at a given time
+    pub status: GameStatus,
+}
+
 /// `GameServer` manages chat rooms and responsible for coordinating chat session.
 ///
 /// Implementation is very naïve.
 #[derive(Debug)]
 pub struct GameServer {
     sessions: HashMap<usize, Recipient<Message>>,
-    games: HashMap<GameId, HashSet<usize>>,
+    games: HashMap<GameId, Game>,
     rng: ThreadRng,
     // visitor_count: Arc<AtomicUsize>,
 }
@@ -88,9 +118,9 @@ impl GameServer {
     fn send_message(&self, room: Option<&str>, message: &str, skip_id: usize) {
         if let Some(room) = room {
             if let Some(sessions) = self.games.get(room) {
-                for id in sessions {
+                for (id, _name) in &sessions.players {
                     if *id != skip_id {
-                        if let Some(addr) = self.sessions.get(id) {
+                        if let Some(addr) = self.sessions.get(&id) {
                             addr.do_send(Message(message.to_owned()));
                         }
                     }
@@ -121,7 +151,9 @@ impl Handler<Connect> for GameServer {
 
         // register session with random id
         let id = self.rng.gen::<usize>();
-        self.sessions.insert(id, msg.addr);
+        self.sessions
+            .insert(id, msg.addr)
+            .map(|_| panic!("Somehow got a usize collision"));
 
         // auto join session to main room
         // self.rooms.entry("main".to_owned()).or_default().insert(id);
@@ -147,7 +179,7 @@ impl Handler<Disconnect> for GameServer {
         if self.sessions.remove(&msg.id).is_some() {
             // remove session from all rooms
             for (name, sessions) in &mut self.games {
-                if sessions.remove(&msg.id) {
+                if sessions.players.remove(&msg.id).is_some() {
                     rooms.push(name.to_owned());
                 }
             }
@@ -180,7 +212,7 @@ impl Handler<Join> for GameServer {
 
         // remove session from all rooms
         for (n, sessions) in &mut self.games {
-            if sessions.remove(&id) {
+            if sessions.players.remove(&id).is_some() {
                 rooms.push(n.to_owned());
             }
         }
@@ -189,7 +221,16 @@ impl Handler<Join> for GameServer {
             self.send_message(Some(&room), "Someone disconnected", 0);
         }
 
-        self.games.entry(game_id.clone()).or_default().insert(id);
+        self.games
+            .entry(game_id.clone())
+            .or_default()
+            .players
+            .insert(
+                id,
+                Player {
+                    name: "Anon".to_owned(),
+                },
+            );
 
         self.send_message(Some(&game_id), "Someone connected", id);
         self.sessions

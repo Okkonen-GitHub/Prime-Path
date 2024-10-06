@@ -19,15 +19,9 @@ use rand::{distributions::Alphanumeric, thread_rng, Rng};
 
 type GameId = String;
 
-#[derive(Default, Debug)]
-struct Game {
-    player1: String,         // when a game is created, the first player always exists
-    player2: Option<String>, // but the second one hasn't connected yet
-}
-
 #[derive(Default)]
 struct AppState {
-    games: Mutex<HashMap<GameId, Game>>,
+    // games: Mutex<HashMap<GameId, Game>>,
 }
 
 fn gen_game_id() -> String {

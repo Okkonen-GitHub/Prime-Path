@@ -209,6 +209,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsGameSession {
                                 })
                                 .wait(ctx);
                         }
+                        "/ready" => if let Some(game_id) = &self.game_id {},
                         _ => ctx.text(format!("!!! unknown command: {m:?}")),
                     }
                 } else {
