@@ -53,17 +53,19 @@ pub struct Join {
     pub game_id: GameId,
 }
 
+/// Check if a game exists, sends a message back (bool)
 #[derive(Message)]
 #[rtype(result(bool))]
 pub struct CheckGameExists {
     pub game_id: GameId,
 }
+/// Request a list of gameIds
 #[derive(Message)]
 #[rtype(result = "Vec<GameId>")]
 pub struct ListGames {}
 
 #[derive(Message)]
-#[rtype(result = "Vec<GameId>")]
+#[rtype(result = "()")]
 pub struct Ready {}
 
 #[derive(Debug, Default)]
