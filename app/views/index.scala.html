@@ -1,0 +1,23 @@
+@()(implicit request: RequestHeader)
+
+@main("Welcome to Play") {
+  <main id="main">
+    <h1>Welcome to Play!</h1>
+    <section id="left" class="content">
+      <h2>Create game</h2>
+      <form>
+        <label for="room-name">Game room name</label>
+        <input type="text" name="room-name" id="room-name">
+        <button type="button" onclick="createGame()">Create</button>
+      </form>
+    </section>
+    <section id="right" class="content">
+      <h2>Join game</h2>
+      <form>
+        <label for="game-code">Game code</label>
+        <input type="text" name="code" id="game-code">
+        <button type="button" onclick="joinGame()">Join</button>
+      </form>
+    </section>
+  </main>
+}

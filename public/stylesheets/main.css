@@ -1,0 +1,19 @@
+
+main {
+    display: grid;
+    grid-template-areas:
+        "header header"
+        "content content";
+    grid-template-columns: 1fr 1fr;
+}
+h1 {
+    grid-area: header;
+}
+section {
+    text-align: center;
+}
+header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
