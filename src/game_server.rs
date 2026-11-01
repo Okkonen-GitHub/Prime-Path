@@ -66,13 +66,15 @@ pub struct ListGames {}
 
 #[derive(Message)]
 #[rtype(result = "()")]
-pub struct Ready {}
+pub struct Ready {
+    pub game_id: GameId,
+    pub id: usize,
+}
 
 #[derive(Debug, Default)]
 pub enum GameStatus {
     #[default]
     Waiting,
-    Starting,
     InProcess {
         current_number: NonZeroU128,
     },
@@ -81,6 +83,7 @@ pub enum GameStatus {
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Player {
     pub name: String, // controlled by /name
+    pub ready: bool,  // ready to start a game
 }
 
 #[derive(Default, Debug)]
@@ -255,5 +258,17 @@ impl Handler<ListGames> for GameServer {
 
     fn handle(&mut self, _msg: ListGames, _: &mut Context<Self>) -> Self::Result {
         Vec::from_iter(self.games.keys().map(ToOwned::to_owned))
+    }
+}
+impl Handler<Ready> for GameServer {
+    type Result = ();
+
+    fn handle(&mut self, msg: Ready, _: &mut Context<Self>) -> Self::Result {
+        let Ready { game_id, id } = msg;
+        self.games.entry(game_id).and_modify(|game| {
+            game.players.entry(id).and_modify(|player| {
+                player.ready = true;
+            });
+        });
     }
 }
