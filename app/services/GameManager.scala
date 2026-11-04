@@ -32,7 +32,7 @@ class GameManager extends Manager {
     def apply(code: String) = games.get(code)
 
     def createGame(name: String, creator: String): String = {
-        val code = Random.nextString(6)
+        val code = Random.alphanumeric.take(6).mkString
         games.addOne((code, new Game(code, name, creator)))
         code
     }

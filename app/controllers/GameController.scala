@@ -18,11 +18,11 @@ class GameController @Inject()(val controllerComponents: ControllerComponents, v
 
   def createGame(name: String, creator: String) = Action { implicit request: Request[AnyContent] =>
     val code = gameManager.createGame(name, creator)
-    Redirect(s"/game/$code")
+    Ok(s"/game/$code")
   }
   def joinGame(code: String, name: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     gameManager(code).getOrElse(return Action {NotFound}).addOpponent(name)
-    Redirect(s"/game/$code")
+    Ok(s"/game/$code")
   }
   def gameView(code: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     val name = gameManager(code).getOrElse(return Action { NotFound }).name
